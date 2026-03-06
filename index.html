@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: { light: "#6366f1", dark: "#818cf8" },
+              bg: { light: "#f8fafc", dark: "#0f172a" },
+              card: { light: "#ffffff", dark: "#1e293b" },
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              serif: ["Merriweather", "serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/fontsource-inter@4.0.0/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/fontsource-merriweather@4.0.0/index.css"
+    />
+    <style>
+      body {
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      .loading-spinner {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .upload-area {
+        transition: all 0.3s ease;
+      }
+      .upload-area.dragover {
+        border-color: #6366f1;
+        background-color: rgba(99, 102, 241, 0.1);
+      }
+      .modal {
+        transition: opacity 0.3s ease;
+      }
+      .modal.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .modal:not(.hidden) {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-bg-light text-slate-800 dark:bg-bg-dark dark:text-slate-100 min-h-screen flex flex-col font-sans"
+  >
+    <header
+      class="container mx-auto px-6 py-8 flex justify-between items-center"
+    >
+      <div>
+        <h1
+          class="text-3xl font-serif font-bold tracking-tight text-primary-light dark:text-primary-dark"
+        >
+          Library
+        </h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Only yours.
+        </p>
+      </div>
+      <div class="flex items-center gap-4">
+        <button
+          id="upload-btn"
+          class="flex items-center gap-2 px-4 py-2 bg-primary-light hover:bg-primary-dark text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-light"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+            ></path>
+          </svg>
+          <span>Upload</span>
+        </button>
+        <button
+          id="theme-toggle"
+          class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-light"
+          aria-label="Toggle theme"
+        >
+          <svg
+            id="sun-icon"
+            class="w-6 h-6 hidden dark:block text-yellow-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            ></path>
+          </svg>
+          <svg
+            id="moon-icon"
+            class="w-6 h-6 block dark:hidden text-slate-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="w-full h-px bg-slate-200 dark:bg-slate-700 mb-8"></div>
+
+    <div class="container mx-auto px-6 mb-6">
+      <div
+        class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 flex-wrap"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        <span>Allowed formats:</span>
+        <div id="allowed-extensions" class="flex gap-2">
+          <span class="text-slate-400 italic">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <main class="container mx-auto px-6 pb-12 flex-grow">
+      <div
+        id="loading-state"
+        class="hidden flex flex-col items-center justify-center py-16"
+      >
+        <svg
+          class="w-12 h-12 text-primary-light loading-spinner mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          ></path>
+        </svg>
+        <p class="text-slate-500 dark:text-slate-400">Loading book list...</p>
+      </div>
+
+      <div
+        id="book-list"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      ></div>
+
+      <div
+        id="books-not-found"
+        class="hidden flex flex-col items-center justify-center py-16"
+      >
+        <svg
+          class="w-24 h-24 text-slate-300 dark:text-slate-600 mb-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          ></path>
+        </svg>
+        <h2
+          class="text-2xl font-serif font-bold text-slate-700 dark:text-slate-300 mb-2"
+        >
+          No books found
+        </h2>
+        <p class="text-slate-500 dark:text-slate-400 text-center max-w-md mb-4">
+          The library has no files with allowed extensions.
+        </p>
+        <button
+          id="upload-btn-empty"
+          class="px-6 py-2 bg-primary-light hover:bg-primary-dark text-white rounded-lg transition-colors"
+        >
+          Upload book
+        </button>
+      </div>
+
+      <div
+        id="error-state"
+        class="hidden flex flex-col items-center justify-center py-16"
+      >
+        <svg
+          class="w-24 h-24 text-red-300 dark:text-red-600 mb-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        <h2
+          class="text-2xl font-serif font-bold text-slate-700 dark:text-slate-300 mb-2"
+        >
+          Upload error
+        </h2>
+        <p class="text-slate-500 dark:text-slate-400 text-center max-w-md">
+          Failed to load book list. Check your server connection.
+        </p>
+      </div>
+    </main>
+
+    <div
+      id="upload-modal"
+      class="modal hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+    >
+      <div
+        class="bg-card-light dark:bg-card-dark rounded-2xl p-8 w-full max-w-lg mx-4 shadow-2xl"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h2
+            class="text-2xl font-serif font-bold text-slate-900 dark:text-white"
+          >
+            Upload file
+          </h2>
+          <button
+            id="close-modal"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            <svg
+              class="w-6 h-6 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
+        <div
+          id="drop-zone"
+          class="upload-area border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-primary-light dark:hover:border-primary-dark"
+        >
+          <input type="file" id="file-input" class="hidden" />
+          <svg
+            class="w-16 h-16 mx-auto text-slate-400 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            ></path>
+          </svg>
+          <p class="text-slate-600 dark:text-slate-300 font-medium mb-2">
+            Drag and drop file here
+          </p>
+          <p class="text-slate-400 dark:text-slate-500 text-sm">
+            or click to browse
+          </p>
+          <p
+            class="text-slate-400 dark:text-slate-500 text-xs mt-4"
+            id="allowed-ext-text"
+          ></p>
+        </div>
+
+        <div
+          id="file-info"
+          class="hidden mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg"
+        >
+          <div class="flex items-center gap-3">
+            <svg
+              class="w-8 h-8 text-primary-light"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              ></path>
+            </svg>
+            <div class="flex-grow">
+              <p
+                id="file-name"
+                class="font-medium text-slate-900 dark:text-white truncate"
+              ></p>
+              <p
+                id="file-size"
+                class="text-sm text-slate-500 dark:text-slate-400"
+              ></p>
+            </div>
+            <button
+              id="remove-file"
+              class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+            >
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="upload-progress" class="hidden mt-4">
+          <div
+            class="flex justify-between text-sm text-slate-500 dark:text-slate-400 mb-2"
+          >
+            <span>Uploading...</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+            <div
+              id="progress-bar"
+              class="bg-primary-light h-2 rounded-full transition-all duration-300"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <div
+          id="upload-status"
+          class="hidden mt-4 p-3 rounded-lg text-sm"
+        ></div>
+
+        <button
+          id="confirm-upload"
+          class="w-full mt-6 py-3 bg-primary-light hover:bg-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled
+        >
+          Upload
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const config = {
+        allowedExtensions: [],
+        apiEndpoint: "/books",
+        configEndpoint: "/config.yaml",
+        uploadEndpoint: "/books/upload",
+      };
+
+      let selectedFile = null;
+
+      const themeToggleBtn = document.getElementById("theme-toggle");
+      const htmlElement = document.documentElement;
+
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        htmlElement.classList.add("dark");
+      } else {
+        htmlElement.classList.remove("dark");
+      }
+
+      themeToggleBtn.addEventListener("click", () => {
+        htmlElement.classList.toggle("dark");
+        localStorage.theme = htmlElement.classList.contains("dark")
+          ? "dark"
+          : "light";
+      });
+
+      function getFileExtension(filename) {
+        const parts = filename.split(".");
+        return parts.length > 1 ? "." + parts.pop().toLowerCase() : "";
+      }
+
+      function isAllowedExtension(filename) {
+        const ext = getFileExtension(filename);
+        return config.allowedExtensions.some(
+          (allowed) => allowed.toLowerCase() === ext.toLowerCase(),
+        );
+      }
+
+      function parseConfigYaml(text) {
+        const extensions = [];
+        const lines = text.split("\n");
+        let inAllowedEx = false;
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("allowed_ex:")) {
+            inAllowedEx = true;
+            continue;
+          }
+          if (inAllowedEx) {
+            if (trimmed.startsWith("-")) {
+              const ext = trimmed.replace("-", "").trim().replace(/["']/g, "");
+              if (ext) extensions.push(ext);
+            } else if (
+              trimmed &&
+              !trimmed.startsWith("#") &&
+              !trimmed.startsWith(" ")
+            ) {
+              inAllowedEx = false;
+            }
+          }
+        }
+        return extensions;
+      }
+
+      async function fetchConfig() {
+        try {
+          const response = await fetch(config.configEndpoint);
+          if (response.ok) {
+            const text = await response.text();
+            const extensions = parseConfigYaml(text);
+            if (extensions.length > 0) {
+              config.allowedExtensions = extensions;
+              return true;
+            }
+          }
+        } catch (error) {
+          console.log("Could not fetch config.yaml");
+        }
+        return false;
+      }
+
+      function renderAllowedExtensions() {
+        const container = document.getElementById("allowed-extensions");
+        const extText = document.getElementById("allowed-ext-text");
+
+        if (config.allowedExtensions.length === 0) {
+          container.innerHTML =
+            '<span class="text-slate-400 italic">Not specified</span>';
+          extText.textContent =
+            "Allowed formats will be determined after loading the book list";
+          return;
+        }
+
+        container.innerHTML = config.allowedExtensions
+          .map(
+            (ext) =>
+              `<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-mono uppercase">${ext}</span>`,
+          )
+          .join("");
+
+        extText.textContent = `Allowed: ${config.allowedExtensions.join(", ")}`;
+      }
+
+      function getFileIcon(filename) {
+        const ext = getFileExtension(filename);
+        const icons = {
+          ".pdf":
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>',
+          ".txt":
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>',
+          ".html":
+            '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>',
+        };
+        return (
+          icons[ext] ||
+          '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>'
+        );
+      }
+
+      function generateTitle(filename) {
+        return filename
+          .replace(/\.[^/.]+$/, "")
+          .replace(/[_-]/g, " ")
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      }
+
+      function formatBytes(size) {
+        if (!size || size === 0) return "0 B";
+        const KB = 1024,
+          MB = KB * 1024,
+          GB = MB * 1024;
+        if (size >= GB) return (size / GB).toFixed(2) + " GB";
+        if (size >= MB) return (size / MB).toFixed(2) + " MB";
+        if (size >= KB) return (size / KB).toFixed(2) + " KB";
+        return size + " B";
+      }
+
+      const bookListContainer = document.getElementById("book-list");
+      const booksNotFoundContainer = document.getElementById("books-not-found");
+      const loadingStateContainer = document.getElementById("loading-state");
+      const errorStateContainer = document.getElementById("error-state");
+
+      function showLoading() {
+        loadingStateContainer.classList.remove("hidden");
+        bookListContainer.classList.add("hidden");
+        booksNotFoundContainer.classList.add("hidden");
+        errorStateContainer.classList.add("hidden");
+      }
+
+      function showError() {
+        loadingStateContainer.classList.add("hidden");
+        bookListContainer.classList.add("hidden");
+        booksNotFoundContainer.classList.add("hidden");
+        errorStateContainer.classList.remove("hidden");
+      }
+
+      function showBooksNotFound() {
+        loadingStateContainer.classList.add("hidden");
+        bookListContainer.classList.add("hidden");
+        booksNotFoundContainer.classList.remove("hidden");
+        errorStateContainer.classList.add("hidden");
+      }
+
+      function showBooks(books) {
+        loadingStateContainer.classList.add("hidden");
+        errorStateContainer.classList.add("hidden");
+
+        if (books.length === 0) {
+          showBooksNotFound();
+          return;
+        }
+
+        bookListContainer.classList.remove("hidden");
+        booksNotFoundContainer.classList.add("hidden");
+
+        bookListContainer.innerHTML = books
+          .map((book) => {
+            const title = generateTitle(book.name);
+            const ext = getFileExtension(book.name);
+            return `
+            <div class="book-card bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between h-full group cursor-pointer relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-16 h-16 bg-primary-light/5 dark:bg-primary-dark/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+              <div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">${getFileIcon(book.name)}</div>
+                  <span class="text-xs font-medium px-2 py-1 rounded-full bg-primary-light/10 dark:bg-primary-dark/20 text-primary-light dark:text-primary-dark font-semibold uppercase">${ext}</span>
+                </div>
+                <h3 class="text-xl font-serif font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary-light dark:group-hover:text-primary-dark transition-colors">${title}</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 truncate" title="${book.name}">${book.name}</p>
+              </div>
+              <a href="${book.url}" download class="inline-flex items-center justify-center w-full py-2 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Download
+              </a>
+            </div>`;
+          })
+          .join("");
+      }
+
+      async function fetchBooksList() {
+        showLoading();
+        try {
+          const response = await fetch(config.apiEndpoint);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            if (config.allowedExtensions.length === 0 && data.length > 0) {
+              const extensions = new Set();
+              data.forEach((book) => {
+                const ext = getFileExtension(book.name);
+                if (ext) extensions.add(ext);
+              });
+              config.allowedExtensions = Array.from(extensions);
+              renderAllowedExtensions();
+            }
+            showBooks(data);
+          } else {
+            showBooksNotFound();
+          }
+        } catch (error) {
+          console.error("Error fetching books:", error);
+          showError();
+        }
+      }
+
+      const uploadModal = document.getElementById("upload-modal");
+      const uploadBtn = document.getElementById("upload-btn");
+      const uploadBtnEmpty = document.getElementById("upload-btn-empty");
+      const closeModalBtn = document.getElementById("close-modal");
+      const dropZone = document.getElementById("drop-zone");
+      const fileInput = document.getElementById("file-input");
+      const fileInfo = document.getElementById("file-info");
+      const fileNameEl = document.getElementById("file-name");
+      const fileSizeEl = document.getElementById("file-size");
+      const removeFileBtn = document.getElementById("remove-file");
+      const confirmUploadBtn = document.getElementById("confirm-upload");
+      const uploadProgress = document.getElementById("upload-progress");
+      const progressBar = document.getElementById("progress-bar");
+      const progressPercent = document.getElementById("progress-percent");
+      const uploadStatus = document.getElementById("upload-status");
+
+      function openModal() {
+        uploadModal.classList.remove("hidden");
+        resetUploadForm();
+      }
+
+      function closeModalFunc() {
+        uploadModal.classList.add("hidden");
+        resetUploadForm();
+      }
+
+      function resetUploadForm() {
+        selectedFile = null;
+        fileInput.value = "";
+        fileInfo.classList.add("hidden");
+        uploadProgress.classList.add("hidden");
+        uploadStatus.classList.add("hidden");
+        confirmUploadBtn.disabled = true;
+        progressBar.style.width = "0%";
+        progressPercent.textContent = "0%";
+      }
+
+      function showFile(file) {
+        selectedFile = file;
+        fileNameEl.textContent = file.name;
+        fileSizeEl.textContent = formatBytes(file.size);
+        fileInfo.classList.remove("hidden");
+        confirmUploadBtn.disabled = false;
+      }
+
+      function showUploadStatus(message, isError = false) {
+        uploadStatus.textContent = message;
+        uploadStatus.classList.remove(
+          "hidden",
+          "bg-red-100",
+          "text-red-700",
+          "bg-green-100",
+          "text-green-700",
+          "dark:bg-red-900/30",
+          "dark:text-red-400",
+          "dark:bg-green-900/30",
+          "dark:text-green-400",
+        );
+        if (isError) {
+          uploadStatus.classList.add(
+            "bg-red-100",
+            "text-red-700",
+            "dark:bg-red-900/30",
+            "dark:text-red-400",
+          );
+        } else {
+          uploadStatus.classList.add(
+            "bg-green-100",
+            "text-green-700",
+            "dark:bg-green-900/30",
+            "dark:text-green-400",
+          );
+        }
+      }
+
+      async function uploadFile() {
+        if (!selectedFile) return;
+        if (!isAllowedExtension(selectedFile.name)) {
+          showUploadStatus(
+            `Invalid extension. Allowed: ${config.allowedExtensions.join(", ")}`,
+            true,
+          );
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        uploadProgress.classList.remove("hidden");
+        confirmUploadBtn.disabled = true;
+
+        const xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent}%`;
+          }
+        });
+        xhr.addEventListener("load", () => {
+          if (xhr.status === 200) {
+            showUploadStatus("File uploaded successfully!", false);
+            setTimeout(() => {
+              closeModalFunc();
+              fetchBooksList();
+            }, 1500);
+          } else {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              showUploadStatus(response.error || "Upload error", true);
+            } catch {
+              showUploadStatus("Upload error", true);
+            }
+            confirmUploadBtn.disabled = false;
+          }
+        });
+        xhr.addEventListener("error", () => {
+          showUploadStatus("Network error", true);
+          confirmUploadBtn.disabled = false;
+        });
+        xhr.open("POST", config.uploadEndpoint);
+        xhr.send(formData);
+      }
+
+      uploadBtn.addEventListener("click", openModal);
+      uploadBtnEmpty.addEventListener("click", openModal);
+      closeModalBtn.addEventListener("click", closeModalFunc);
+      dropZone.addEventListener("click", () => fileInput.click());
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("dragover"),
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        if (e.dataTransfer.files.length > 0) showFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) showFile(e.target.files[0]);
+      });
+      removeFileBtn.addEventListener("click", () => {
+        selectedFile = null;
+        fileInput.value = "";
+        fileInfo.classList.add("hidden");
+        confirmUploadBtn.disabled = true;
+      });
+      confirmUploadBtn.addEventListener("click", uploadFile);
+      uploadModal.addEventListener("click", (e) => {
+        if (e.target === uploadModal) closeModalFunc();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !uploadModal.classList.contains("hidden"))
+          closeModalFunc();
+      });
+
+      async function init() {
+        await fetchConfig();
+        renderAllowedExtensions();
+        fetchBooksList();
+      }
+      init();
+    </script>
+  </body>
+</html>

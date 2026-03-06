@@ -1,0 +1,17 @@
+#config.yaml
+
+
+server:
+  port: 8080 # Specify the port you want to use
+
+
+allowed_ex: # Allowed files extensions
+  - ".pdf"
+  - ".txt"
+  - ".html"
+  - ".fb2"
+
+
+
+
+
