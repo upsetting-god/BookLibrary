@@ -41,6 +41,18 @@ allowed_ex: # Allowed files extensions
   - ".html"
   - ".fb2"
 ```
+Screenshots
+---
+
+
+<i>Server<img width="860" height="803" alt="dark_theme" src="https://raw.githubusercontent.com/upsetting-god/BookLibrary/main/pic/program.pic"/></i>
+<br>
+<br>
+<i>Light Theme<img width="860" height="803" alt="dark_theme" src="https://raw.githubusercontent.com/upsetting-god/BookLibrary/main/pic/light_theme.png"/></i>
+<br>
+<br>
+<i>Dark Theme<img width="860" height="803" alt="dark_theme" src="https://raw.githubusercontent.com/upsetting-god/BookLibrary/main/pic/dark_theme.png"/></i>
+
 
 
 
